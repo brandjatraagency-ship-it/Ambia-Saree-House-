@@ -1,0 +1,6 @@
+{
+  "name": "Ambia Saree House - আম্বিয়া শাড়ি হাউস",
+  "description": "প্রিমিয়াম জামদানি, কাতান, সিল্ক ও ঢাকাই শাড়ির আধুনিক ই-কমার্স প্ল্যাটফর্ম ও অ্যাডমিন প্যানেল।",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

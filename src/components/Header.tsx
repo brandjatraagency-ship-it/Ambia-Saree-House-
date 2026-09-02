@@ -85,9 +85,7 @@ export const Header: React.FC<HeaderProps> = ({
     currentCategory,
     navigateTo,
     activeView, 
-    setActiveView,
-    darkMode,
-    toggleDarkMode
+    setActiveView
   } = useStore();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -298,16 +296,6 @@ export const Header: React.FC<HeaderProps> = ({
               aria-label="Search"
             >
               <Search className="w-5 h-5" />
-            </button>
-
-            {/* Dark Mode Toggle */}
-            <button
-              onClick={toggleDarkMode}
-              className="p-2 sm:p-2.5 rounded-full text-stone-700 dark:text-amber-300 hover:bg-stone-200/70 dark:hover:bg-stone-800 transition-colors"
-              title={darkMode ? 'লাইট মোড' : 'ডার্ক মোড'}
-              aria-label="Toggle Theme"
-            >
-              {darkMode ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
             </button>
 
             {/* Wishlist Button */}

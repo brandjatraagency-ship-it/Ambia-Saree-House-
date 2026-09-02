@@ -13,11 +13,14 @@ import {
   Truck,
   Eye,
   FileText,
-  MessageSquare
+  MessageSquare,
+  Sparkles,
+  Globe,
+  Tag
 } from 'lucide-react';
 
 interface AdminOverviewProps {
-  onNavigateTab: (tab: 'products' | 'orders' | 'coupons' | 'settings') => void;
+  onNavigateTab: (tab: 'products' | 'orders' | 'coupons' | 'settings' | 'seo' | 'cod-hub') => void;
   onOpenNewProductModal: () => void;
   onViewInvoice: (order: Order) => void;
 }
@@ -27,20 +30,23 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
   onOpenNewProductModal,
   onViewInvoice 
 }) => {
-  const { orders, products, updateOrderStatus } = useStore();
+  const { orders, products, seoSettings } = useStore();
 
   const totalRevenue = orders
     .filter(o => o.status !== 'বাতিল')
     .reduce((sum, o) => sum + o.total, 0);
 
   const pendingOrders = orders.filter(o => o.status === 'পেন্ডিং');
+  const confirmedOrders = orders.filter(o => o.status === 'কনফার্মড' || o.status === 'প্রসেসিং');
   const lowStockProducts = products.filter(p => p.stockCount <= 5);
 
   // Sales by Fabric distribution
   const fabricStats: { [key: string]: number } = {};
   orders.forEach(o => {
     o.items.forEach(it => {
-      fabricStats[it.product.fabric] = (fabricStats[it.product.fabric] || 0) + it.quantity;
+      if (it?.product?.fabric) {
+        fabricStats[it.product.fabric] = (fabricStats[it.product.fabric] || 0) + it.quantity;
+      }
     });
   });
 
@@ -51,65 +57,65 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Total Sales */}
-        <div className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs space-y-2">
+        <div className="bg-white dark:bg-[#1E171C] p-5 rounded-2xl border border-stone-200/80 dark:border-stone-800 shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-500">মোট বিক্রয় (সর্বমোট)</span>
-            <div className="p-2 rounded-xl bg-emerald-100 text-emerald-800">
+            <span className="text-xs font-semibold text-stone-500 dark:text-stone-400">মোট বিক্রয় (সর্বমোট)</span>
+            <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-[#6B1728]">
+          <div className="text-2xl font-extrabold text-[#6B1728] dark:text-amber-400">
             ৳ {totalRevenue.toLocaleString('bn-BD')}
           </div>
-          <div className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
+          <div className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium flex items-center gap-1">
             <span>সফল ও প্রসেসিং অর্ডার থেকে অর্জিত</span>
           </div>
         </div>
 
         {/* Total Orders */}
-        <div className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs space-y-2">
+        <div className="bg-white dark:bg-[#1E171C] p-5 rounded-2xl border border-stone-200/80 dark:border-stone-800 shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-500">মোট অর্ডার</span>
-            <div className="p-2 rounded-xl bg-blue-100 text-blue-800">
+            <span className="text-xs font-semibold text-stone-500 dark:text-stone-400">মোট অর্ডার</span>
+            <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300">
               <ShoppingBag className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-stone-900">
+          <div className="text-2xl font-extrabold text-stone-900 dark:text-stone-100">
             {orders.length} টি
           </div>
-          <div className="text-[11px] text-stone-500">
+          <div className="text-[11px] text-stone-500 dark:text-stone-400">
             {orders.filter(o => o.status === 'ডেলিভার্ড').length} টি সফলভাবে ডেলিভার্ড
           </div>
         </div>
 
         {/* Pending Orders */}
-        <div className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs space-y-2">
+        <div className="bg-white dark:bg-[#1E171C] p-5 rounded-2xl border border-stone-200/80 dark:border-stone-800 shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-500">পেন্ডিং অর্ডার</span>
-            <div className="p-2 rounded-xl bg-amber-100 text-amber-900">
+            <span className="text-xs font-semibold text-stone-500 dark:text-stone-400">পেন্ডিং অর্ডার</span>
+            <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300">
               <Clock className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-amber-700">
+          <div className="text-2xl font-extrabold text-amber-700 dark:text-amber-400">
             {pendingOrders.length} টি
           </div>
-          <div className="text-[11px] text-amber-800 font-medium">
+          <div className="text-[11px] text-amber-800 dark:text-amber-300 font-medium">
             {pendingOrders.length > 0 ? 'জরুরি কল ও কনফার্মেশন প্রয়োজন' : 'কোনো পেন্ডিং অর্ডার নেই'}
           </div>
         </div>
 
         {/* Total Catalog & Low Stock */}
-        <div className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs space-y-2">
+        <div className="bg-white dark:bg-[#1E171C] p-5 rounded-2xl border border-stone-200/80 dark:border-stone-800 shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-500">স্টক ও ইনভেন্টরি</span>
-            <div className="p-2 rounded-xl bg-rose-100 text-rose-800">
+            <span className="text-xs font-semibold text-stone-500 dark:text-stone-400">স্টক ও ইনভেন্টরি</span>
+            <div className="p-2 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300">
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-stone-900">
+          <div className="text-2xl font-extrabold text-stone-900 dark:text-stone-100">
             {products.length} টি ডিজাইন
           </div>
-          <div className="text-[11px] text-rose-600 font-bold">
+          <div className="text-[11px] text-rose-600 dark:text-rose-400 font-bold">
             {lowStockProducts.length} টি শাড়ির স্টক সীমিত (≤ ৫ টি)
           </div>
         </div>
@@ -117,13 +123,18 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
       </div>
 
       {/* Quick Action Buttons */}
-      <div className="bg-stone-900 text-white p-5 rounded-3xl flex flex-wrap items-center justify-between gap-4 shadow-md">
+      <div className="bg-stone-900 dark:bg-[#191418] text-white p-5 sm:p-6 rounded-3xl flex flex-wrap items-center justify-between gap-4 shadow-md border border-stone-800">
         <div className="space-y-1">
-          <h3 className="font-bold text-base text-amber-200 font-serif-brand">
-            আম্বিয়া শাড়ি হাউস — কুইক কন্ট্রোল
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-bold text-base text-amber-200 font-serif-brand">
+              আম্বিয়া শাড়ি হাউস — অ্যাডমিন হাব
+            </h3>
+            <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono">
+              অনলাইন শপ সক্রিয়
+            </span>
+          </div>
           <p className="text-xs text-stone-300">
-            নতুন শাড়ির কালেকশন আপলোড করুন অথবা অর্ডার প্রসেসিং আপডেট করুন।
+            শাড়ি আপলোড করুন, ক্যাশ অন ডেলিভারি (COD) তৈরি করুন অথবা এসইও র্যাঙ্কিং অপ্টিমাইজ করুন।
           </p>
         </div>
 
@@ -133,7 +144,23 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
             className="flex items-center gap-1.5 bg-[#6B1728] hover:bg-[#8B1E3F] text-amber-100 text-xs font-bold py-2.5 px-4 rounded-xl transition-all shadow-xs"
           >
             <Plus className="w-4 h-4 text-amber-300" />
-            <span>নতুন শাড়ি যুক্ত করুন</span>
+            <span>নতুন শাড়ি যোগ</span>
+          </button>
+
+          <button
+            onClick={() => onNavigateTab('cod-hub')}
+            className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-stone-950 text-xs font-bold py-2.5 px-4 rounded-xl transition-all shadow-xs"
+          >
+            <Truck className="w-4 h-4" />
+            <span>COD কুইক সেল</span>
+          </button>
+
+          <button
+            onClick={() => onNavigateTab('seo')}
+            className="flex items-center gap-1.5 bg-stone-800 hover:bg-stone-700 text-amber-300 text-xs font-semibold py-2.5 px-4 rounded-xl transition-all border border-stone-700"
+          >
+            <Globe className="w-4 h-4" />
+            <span>SEO ম্যানেজার</span>
           </button>
 
           <button
@@ -141,7 +168,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
             className="flex items-center gap-1.5 bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold py-2.5 px-4 rounded-xl transition-all border border-stone-700"
           >
             <ShoppingBag className="w-4 h-4" />
-            <span>সকল অর্ডার ম্যানেজ করুন</span>
+            <span>সকল অর্ডার</span>
           </button>
         </div>
       </div>
@@ -150,15 +177,15 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Recent Orders (8 cols) */}
-        <div className="lg:col-span-8 bg-white p-5 rounded-2xl border border-stone-200 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-            <h3 className="font-bold text-stone-900 text-sm flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#6B1728]" />
+        <div className="lg:col-span-8 bg-white dark:bg-[#1E171C] p-5 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
+            <h3 className="font-bold text-stone-900 dark:text-stone-100 text-sm flex items-center gap-2">
+              <Clock className="w-4 h-4 text-[#6B1728] dark:text-amber-400" />
               <span>সাম্প্রতিক অর্ডারসমূহ</span>
             </h3>
             <button
               onClick={() => onNavigateTab('orders')}
-              className="text-xs text-[#6B1728] font-bold hover:underline"
+              className="text-xs text-[#6B1728] dark:text-amber-400 font-bold hover:underline"
             >
               সব দেখুন ({orders.length})
             </button>
@@ -167,7 +194,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-stone-200 text-stone-500 font-semibold bg-stone-50">
+                <tr className="border-b border-stone-200 dark:border-stone-800 text-stone-500 dark:text-stone-400 font-semibold bg-stone-50 dark:bg-stone-900/60">
                   <th className="py-2.5 px-3">অর্ডার আইডি</th>
                   <th className="py-2.5 px-3">গ্রাহকের নাম ও ফোন</th>
                   <th className="py-2.5 px-3">শাড়ি আইটেম</th>
@@ -176,34 +203,34 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
                   <th className="py-2.5 px-3 text-right">একশন</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-100">
+              <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
                 {orders.slice(0, 5).map((ord) => (
-                  <tr key={ord.id} className="hover:bg-stone-50/80 transition-colors">
+                  <tr key={ord.id} className="hover:bg-stone-50/80 dark:hover:bg-stone-900/40 transition-colors">
                     <td className="py-3 px-3">
-                      <span className="font-mono font-bold text-stone-900">{ord.id}</span>
+                      <span className="font-mono font-bold text-stone-900 dark:text-stone-100">{ord.id}</span>
                       <span className="block text-[10px] text-stone-400 font-mono">{ord.trackingCode}</span>
                     </td>
                     <td className="py-3 px-3">
-                      <span className="font-semibold text-stone-900 block">{ord.customer.name}</span>
-                      <span className="text-stone-500 text-[11px]">{ord.customer.phone}</span>
+                      <span className="font-semibold text-stone-900 dark:text-stone-100 block">{ord.customer.name}</span>
+                      <span className="text-stone-500 dark:text-stone-400 text-[11px]">{ord.customer.phone}</span>
                     </td>
                     <td className="py-3 px-3">
-                      <span className="text-stone-700">
+                      <span className="text-stone-700 dark:text-stone-300">
                         {ord.items.map(i => `${i.product.fabric} (${i.quantity})`).join(', ')}
                       </span>
                     </td>
-                    <td className="py-3 px-3 font-bold text-[#6B1728]">
+                    <td className="py-3 px-3 font-bold text-[#6B1728] dark:text-amber-400">
                       ৳ {ord.total.toLocaleString('bn-BD')}
                     </td>
                     <td className="py-3 px-3">
                       <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full inline-block ${
                         ord.status === 'ডেলিভার্ড'
-                          ? 'bg-emerald-100 text-emerald-800'
+                          ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300'
                           : ord.status === 'পেন্ডিং'
-                          ? 'bg-amber-100 text-amber-900'
+                          ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300'
                           : ord.status === 'বাতিল'
-                          ? 'bg-rose-100 text-rose-800'
-                          : 'bg-blue-100 text-blue-800'
+                          ? 'bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300'
+                          : 'bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300'
                       }`}>
                         {ord.status}
                       </span>
@@ -211,7 +238,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
                     <td className="py-3 px-3 text-right space-x-1">
                       <button
                         onClick={() => onViewInvoice(ord)}
-                        className="p-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 transition-colors"
+                        className="p-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 transition-colors"
                         title="মেমো প্রিন্ট করুন"
                       >
                         <FileText className="w-3.5 h-3.5" />
@@ -228,9 +255,9 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
         <div className="lg:col-span-4 space-y-6">
           
           {/* Low stock alert box */}
-          <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs space-y-3">
-            <h4 className="font-bold text-stone-900 text-xs flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-rose-700">
+          <div className="bg-white dark:bg-[#1E171C] p-5 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-xs space-y-3">
+            <h4 className="font-bold text-stone-900 dark:text-stone-100 text-xs flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-rose-700 dark:text-rose-400">
                 <AlertTriangle className="w-4 h-4" />
                 সীমিত স্টক সতর্কতা (Low Stock)
               </span>
@@ -239,15 +266,15 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
 
             <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
               {lowStockProducts.map(p => (
-                <div key={p.id} className="flex items-center justify-between p-2 rounded-xl bg-rose-50/60 border border-rose-100 text-xs">
+                <div key={p.id} className="flex items-center justify-between p-2 rounded-xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/40 text-xs">
                   <div className="flex items-center gap-2 min-w-0">
-                    <img src={p.images[0]} alt="" className="w-8 h-10 object-cover rounded shrink-0" />
+                    <img src={p.images[0]} alt="" className="w-8 h-10 object-cover rounded shrink-0" referrerPolicy="no-referrer" />
                     <div className="truncate">
-                      <p className="font-bold text-stone-900 truncate">{p.name}</p>
-                      <p className="text-[10px] text-stone-500 font-mono">{p.code}</p>
+                      <p className="font-bold text-stone-900 dark:text-stone-100 truncate">{p.name}</p>
+                      <p className="text-[10px] text-stone-500 dark:text-stone-400 font-mono">{p.code}</p>
                     </div>
                   </div>
-                  <span className="font-bold text-rose-700 px-2 py-0.5 bg-rose-100 rounded-md shrink-0">
+                  <span className="font-bold text-rose-700 dark:text-rose-300 px-2 py-0.5 bg-rose-100 dark:bg-rose-900/60 rounded-md shrink-0">
                     {p.stockCount} টি বাকি
                   </span>
                 </div>
@@ -256,8 +283,8 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
           </div>
 
           {/* Saree Fabric Sales Distribution */}
-          <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs space-y-3">
-            <h4 className="font-bold text-stone-900 text-xs uppercase tracking-wider text-stone-500">
+          <div className="bg-white dark:bg-[#1E171C] p-5 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-xs space-y-3">
+            <h4 className="font-bold text-xs uppercase tracking-wider text-stone-500 dark:text-stone-400">
               ফ্যাব্রিক অনুযায়ী বিক্রয় অনুপাত
             </h4>
 
@@ -268,13 +295,13 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
 
                 return (
                   <div key={fab} className="space-y-1">
-                    <div className="flex justify-between font-medium text-stone-700">
+                    <div className="flex justify-between font-medium text-stone-700 dark:text-stone-300">
                       <span>{fab}</span>
                       <span className="font-bold">{count} টি ({percent}%)</span>
                     </div>
-                    <div className="w-full h-2 bg-stone-100 rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-[#6B1728] rounded-full transition-all" 
+                        className="h-full bg-[#6B1728] dark:bg-amber-500 rounded-full transition-all" 
                         style={{ width: `${percent}%` }}
                       />
                     </div>

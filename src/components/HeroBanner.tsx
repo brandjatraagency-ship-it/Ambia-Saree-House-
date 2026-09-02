@@ -1,517 +1,439 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { 
-  Sparkles, 
-  ShieldCheck, 
-  Truck, 
-  RefreshCw, 
-  Award, 
-  ArrowRight, 
-  Heart, 
-  ShoppingBag, 
-  ChevronLeft, 
-  ChevronRight, 
-  Check, 
-  Star, 
-  Eye,
-  Flame,
-  Zap,
-  PhoneCall,
-  Crown,
-  Layers,
-  Users
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
 import { SareeProduct } from '../types';
+import { 
+  Sparkles, 
+  ArrowRight, 
+  ChevronLeft, 
+  ChevronRight, 
+  ShoppingBag, 
+  Heart, 
+  Eye, 
+  Zap, 
+  ShieldCheck, 
+  Truck, 
+  Award, 
+  Clock, 
+  Check, 
+  Star,
+  Layers,
+  Flame
+} from 'lucide-react';
 
 interface HeroBannerProps {
-  onExplore?: () => void;
-  onExploreClick?: () => void;
-  onFabricSelect?: (fabric: string) => void;
+  onShopNowClick?: () => void;
+  onSelectFabric?: (fabric: string) => void;
 }
 
 export const HeroBanner: React.FC<HeroBannerProps> = ({ 
-  onExplore, 
-  onExploreClick, 
-  onFabricSelect 
+  onShopNowClick,
+  onSelectFabric 
 }) => {
   const { 
     products, 
     addToCart, 
-    toggleWishlist, 
-    isInWishlist, 
+    setIsCartOpen, 
     navigateTo, 
-    setIsCheckoutOpen,
-    settings
+    setSelectedProduct,
+    toggleWishlist,
+    isInWishlist
   } = useStore();
 
-  const handleExplore = onExplore || onExploreClick || (() => {
-    const el = document.getElementById('saree-catalog-section');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  });
+  // Highlight featured models matching the exact 3-arch showcase
+  const showcaseItems = [
+    {
+      id: 'showcase-green',
+      title: 'পান্না সবুজ জরির কাতান',
+      subtitle: 'Emerald Green Zari Katan',
+      category: 'কাতান',
+      fabric: 'কাতান',
+      price: 9200,
+      originalPrice: 11500,
+      image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=900&q=80',
+      badge: 'সবুজ এক্সক্লুসিভ',
+      desc: 'হাতে বোনা জরির নিখুঁত পাড় ও জমিন'
+    },
+    {
+      id: 'showcase-maroon',
+      title: 'রাজকীয় ব্রাইডাল বেনারসি কাতান',
+      subtitle: 'Royal Bridal Maroon Katan',
+      category: 'বেনারসি',
+      fabric: 'বেনারসি',
+      price: 12500,
+      originalPrice: 15000,
+      image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=900&q=80',
+      badge: 'টপ ব্রাইডাল চয়েস',
+      desc: 'খাঁটি লাল-মেরুন গর্জিয়াস কাজ'
+    },
+    {
+      id: 'showcase-white',
+      title: 'আদি ঢাকাই অফ-হোয়াইট জামদানি',
+      subtitle: 'Pristine White Jamdani',
+      category: 'জামদানি',
+      fabric: 'জামদানি',
+      price: 8500,
+      originalPrice: 10500,
+      image: 'https://images.unsplash.com/photo-1609357605129-26f69add5d6e?auto=format&fit=crop&w=900&q=80',
+      badge: 'ঐতিহ্যবাহী জামদানি',
+      desc: '৮৪ কাউন্ট সুতায় বোনা নিখুঁত কাজ'
+    }
+  ];
 
-  // Top curated products for hero slideshow
-  const sliderProducts = useMemo(() => {
-    if (!products || products.length === 0) return [];
-    const featured = products.filter(p => p.isFeatured || p.isBestSeller || p.rating >= 4.8);
-    return featured.length >= 3 ? featured.slice(0, 6) : products.slice(0, 6);
-  }, [products]);
+  const [activeIndex, setActiveIndex] = useState(1); // Default to middle card (Maroon/Center)
+  const [isAutoPlay, setIsAutoPlay] = useState(true);
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const timerRef = useRef<number | null>(null);
-
-  // Auto-slide effect (4.5s per slide)
+  // Auto rotate every 6 seconds if not hovered
   useEffect(() => {
-    if (sliderProducts.length <= 1 || isPaused) return;
-
-    timerRef.current = window.setInterval(() => {
-      handleNext();
-    }, 4500);
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [currentIndex, isPaused, sliderProducts.length]);
-
-  const handleNext = () => {
-    if (sliderProducts.length === 0) return;
-    setIsAnimating(true);
-    setCurrentIndex((prev) => (prev + 1) % sliderProducts.length);
-    setTimeout(() => setIsAnimating(false), 500);
-  };
+    if (!isAutoPlay) return;
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % showcaseItems.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [isAutoPlay, showcaseItems.length]);
 
   const handlePrev = () => {
-    if (sliderProducts.length === 0) return;
-    setIsAnimating(true);
-    setCurrentIndex((prev) => (prev - 1 + sliderProducts.length) % sliderProducts.length);
-    setTimeout(() => setIsAnimating(false), 500);
+    setActiveIndex((prev) => (prev === 0 ? showcaseItems.length - 1 : prev - 1));
   };
 
-  const handleSelectSlide = (idx: number) => {
-    if (idx === currentIndex || idx < 0 || idx >= sliderProducts.length) return;
-    setIsAnimating(true);
-    setCurrentIndex(idx);
-    setTimeout(() => setIsAnimating(false), 500);
+  const handleNext = () => {
+    setActiveIndex((prev) => (prev + 1) % showcaseItems.length);
   };
 
-  const currentProduct: SareeProduct | undefined = sliderProducts[currentIndex];
+  const handleCategoryPillClick = (fabric: string) => {
+    if (onSelectFabric) {
+      onSelectFabric(fabric);
+    }
+    const catalogEl = document.getElementById('saree-catalog-section');
+    if (catalogEl) {
+      catalogEl.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
-  const handleInstantBuy = (e: React.MouseEvent, product: SareeProduct) => {
+  const handleShopNow = () => {
+    if (onShopNowClick) {
+      onShopNowClick();
+    } else {
+      const el = document.getElementById('saree-catalog-section');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleCardClick = (item: typeof showcaseItems[0]) => {
+    const matched = products.find(p => p.fabric.toLowerCase().includes(item.fabric.toLowerCase()) || p.name.includes(item.fabric));
+    if (matched) {
+      setSelectedProduct(matched);
+      navigateTo('product-detail', matched);
+    } else if (products.length > 0) {
+      setSelectedProduct(products[0]);
+      navigateTo('product-detail', products[0]);
+    }
+  };
+
+  const handleDirectBuy = (e: React.MouseEvent, item: typeof showcaseItems[0]) => {
     e.stopPropagation();
-    addToCart(product, 1);
-    setIsCheckoutOpen(true);
+    const matched = products.find(p => p.fabric.toLowerCase().includes(item.fabric.toLowerCase()) || p.name.includes(item.fabric)) || products[0];
+    if (matched) {
+      addToCart(matched, 1);
+      setIsCartOpen(true);
+    }
   };
 
-  const handleViewProduct = (product: SareeProduct) => {
-    navigateTo('product', product);
-  };
+  // Quick Category Ribbon counts
+  const categoryCounts = [
+    { name: 'জামদানি', count: products.filter(p => p.fabric === 'জামদানি').length || 4 },
+    { name: 'কাতান', count: products.filter(p => p.fabric === 'কাতান' || p.fabric === 'বেনারসি').length || 4 },
+    { name: 'মসলিন', count: products.filter(p => p.fabric === 'মসলিন').length || 4 },
+    { name: 'সিল্ক', count: products.filter(p => p.fabric === 'সিল্ক').length || 4 },
+  ];
 
   return (
     <div 
-      id="hero-section" 
-      className="relative overflow-hidden bg-gradient-to-b from-[#FAF6F0] via-[#FAF8F5] to-white dark:from-[#180E14] dark:via-[#140D12] dark:to-[#100A0E] pt-6 pb-12 sm:pb-16 border-b border-stone-200/90 dark:border-stone-800 transition-colors"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+      id="hero-banner-section" 
+      className="relative overflow-hidden bg-[#160E12] text-stone-100 select-none border-b border-[#2D1F26]"
+      onMouseEnter={() => setIsAutoPlay(false)}
+      onMouseLeave={() => setIsAutoPlay(true)}
     >
       
-      {/* High-end Ambient Background Aura Glows */}
-      <div className="absolute top-0 right-0 -mr-24 -mt-24 w-[480px] h-[480px] rounded-full bg-gradient-to-br from-amber-400/15 via-rose-500/10 to-transparent blur-3xl pointer-events-none transform-gpu" />
-      <div className="absolute bottom-0 left-0 -ml-24 -mb-24 w-[480px] h-[480px] rounded-full bg-gradient-to-tr from-[#6B1728]/15 via-amber-600/10 to-transparent blur-3xl pointer-events-none transform-gpu" />
+      {/* 1. Deep Velvet Maroon Silk Drapery (Left Aesthetic Backdrop) */}
+      <div 
+        className="absolute left-0 top-0 bottom-0 w-1/3 max-w-[420px] pointer-events-none opacity-40 z-0 bg-gradient-to-r from-[#4A0A17] via-[#350711] to-transparent"
+        style={{
+          backgroundImage: `radial-gradient(ellipse at top left, rgba(128, 20, 42, 0.6), transparent 70%)`
+        }}
+      />
 
-      {/* Subtle traditional damask pattern background texture overlay */}
-      <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none bg-[radial-gradient(#6B1728_1px,transparent_1px)] [background-size:24px_24px]" />
+      {/* 2. Architectural Wooden Finish & Sweeping Curved Panel (Right Aesthetic Backdrop) */}
+      <div 
+        className="absolute right-0 top-0 bottom-0 w-2/3 lg:w-1/2 pointer-events-none z-0 overflow-hidden"
+      >
+        {/* Sweeping curve divider with woodgrain luxury hue */}
+        <div 
+          className="absolute inset-0 bg-gradient-to-l from-[#241716] via-[#1A1114] to-transparent opacity-90"
+        />
+        <div 
+          className="absolute right-0 top-0 bottom-0 w-[580px] bg-[#221617]/40 rounded-l-[120px] border-l border-[#4A3228]/50 backdrop-blur-xs"
+        />
+        
+        {/* Frosted Glass Window with Soft City Skyline / Bokeh Lighting */}
+        <div 
+          className="absolute right-8 top-12 bottom-12 w-[420px] rounded-3xl bg-gradient-to-b from-amber-500/5 via-rose-500/5 to-transparent border border-white/5 opacity-50 blur-xs"
+        />
+      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      {/* 3. Modern Geometrical Brass / Rose-Gold Floor Sculpture with Glowing Pearl Spheres */}
+      <div className="absolute right-6 lg:right-16 top-1/4 bottom-1/4 w-32 pointer-events-none z-0 hidden md:block opacity-75">
+        {/* Geometric Rose-Gold Wireframe Lines */}
+        <div className="absolute top-12 right-6 w-24 h-48 border-r-2 border-t-2 border-[#D4AF37]/30 rounded-tr-[50px] transform rotate-6" />
+        <div className="absolute top-28 right-12 w-20 h-40 border-l-2 border-b-2 border-[#C98B6E]/30 rounded-bl-[40px] transform -rotate-12" />
+        
+        {/* Glowing Pearl-like Spheres */}
+        <div className="absolute top-10 right-4 w-5 h-5 rounded-full bg-gradient-to-br from-[#FFF9E6] via-[#FFE4B5] to-[#D4AF37] shadow-[0_0_18px_rgba(255,228,181,0.8)] animate-pulse" />
+        <div className="absolute top-36 right-16 w-3.5 h-3.5 rounded-full bg-gradient-to-br from-[#FFF9E6] via-[#FFE4B5] to-[#C98B6E] shadow-[0_0_12px_rgba(255,228,181,0.6)]" />
+        <div className="absolute bottom-12 right-8 w-4 h-4 rounded-full bg-gradient-to-br from-[#FFF9E6] via-[#FFE4B5] to-[#D4AF37] shadow-[0_0_14px_rgba(255,228,181,0.7)]" />
+      </div>
+
+      {/* Main Grid Container */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 lg:pt-16 pb-6 sm:pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
-          {/* ================= LEFT COLUMN: Brand Story & Interactive CTAs ================= */}
-          <div className="lg:col-span-6 space-y-5 text-center lg:text-left">
+          {/* ================= LEFT CONTENT: GRAND DISPLAY TYPOGRAPHY & CTA ================= */}
+          <div className="lg:col-span-5 space-y-6 sm:space-y-8 text-center lg:text-left">
             
-            {/* Top Royal Collection Pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 via-[#6B1728]/10 to-amber-500/10 dark:from-amber-400/20 dark:via-rose-900/30 dark:to-amber-400/20 border border-amber-400/30 dark:border-amber-400/40 text-[#6B1728] dark:text-amber-300 text-xs font-bold tracking-wide shadow-xs">
-              <Crown className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-              <span>ঐতিহ্যবাহী তাঁত ও ব্রাইডাল লাক্সারি কালেকশন ২০২৬</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+            {/* Top Brand Monogram & Sparkle */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#36131C]/80 border border-[#6B1728] text-amber-200 text-xs font-semibold shadow-inner mx-auto lg:mx-0">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-spin" style={{ animationDuration: '4s' }} />
+              <span className="font-bangla">খাঁটি ঐতিহ্য ও আভিজাত্যের বিশ্বস্ত ঠিকানা</span>
             </div>
 
-            {/* Main Headline */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.2rem] font-extrabold tracking-tight text-stone-900 dark:text-stone-50 leading-[1.18]">
-              খাঁটি রূপ ও আভিজাত্যে <br />
-              <span className="font-serif-brand text-transparent bg-clip-text bg-gradient-to-r from-[#6B1728] via-[#9E203B] to-[#541220] dark:from-amber-300 dark:via-amber-100 dark:to-amber-400">
-                {settings.storeName || 'আম্বিয়া শাড়ি হাউস'}
-              </span>
-            </h1>
+            {/* Display Headings (স্বর্ণালী রঙে 'অনন্য রূপ, ঐতিহ্যের স্বাদ।') */}
+            <div className="space-y-2">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.15] font-serif-brand">
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#FCE5A4] via-[#E8C16B] to-[#C99839] drop-shadow-sm">
+                  অনন্য রূপ,
+                </span>
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#FCE5A4] via-[#E8C16B] to-[#C99839] drop-shadow-sm">
+                  ঐতিহ্যের স্বাদ।
+                </span>
+              </h1>
 
-            {/* Description */}
-            <p className="text-sm sm:text-base text-stone-600 dark:text-stone-300 max-w-xl mx-auto lg:mx-0 leading-relaxed font-normal">
-              প্রাচীন ঐতিহ্যের সুতোয় বোনা আসল ঢাকাই জামদানি, রূপকথার মতো বেনারসি কাতান, শুভ্র মসলিন ও রেশমি সিল্কের অনন্য সম্ভার—অনলাইনে সরাসরি আপনার দোরগোড়ায়।
+              {/* Subtitle in Crisp White */}
+              <div className="text-xl sm:text-2xl font-bold text-white tracking-wide pt-1">
+                এক্সক্লুসিভ কালেকশন
+              </div>
+            </div>
+
+            {/* English Description Text */}
+            <p className="text-stone-300/90 text-sm sm:text-base leading-relaxed max-w-md mx-auto lg:mx-0 font-sans italic">
+              Discover the art of elegance with our curated range of handpicked sarees.
             </p>
 
-            {/* Quick Saree Fabric Switchers */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 pt-1">
-              <span className="text-xs font-bold text-stone-500 dark:text-stone-400 mr-1 hidden sm:inline">
-                জনপ্রিয় ফ্যাব্রিক:
-              </span>
-              {[
-                { name: 'জামদানি', icon: '🪡', tag: 'হট' },
-                { name: 'কাতান', icon: '👑', tag: 'ব্রাইডাল' },
-                { name: 'মসলিন', icon: '✨', tag: 'খাঁটি' },
-                { name: 'সিল্ক', icon: '🌸', tag: 'রাজকীয়' },
-                { name: 'অর্গানজা', icon: '💎', tag: 'আধুনিক' }
-              ].map((item) => (
-                <button
-                  key={item.name}
-                  onClick={() => {
-                    if (onFabricSelect) onFabricSelect(item.name);
-                    navigateTo('category', item.name);
-                  }}
-                  className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-white dark:bg-[#1E171C] border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:border-[#6B1728] dark:hover:border-amber-400 hover:text-[#6B1728] dark:hover:text-amber-300 transition-all shadow-2xs hover:scale-105 active:scale-95 cursor-pointer group"
-                >
-                  <span>{item.icon}</span>
-                  <span>{item.name}</span>
-                  <span className="text-[9px] text-amber-700 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-950/80 font-bold px-1 rounded-sm">
-                    {item.tag}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            {/* Action CTA Buttons */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 pt-2">
+            {/* Golden CTA Button ("কেনাকাটা করুন ❯") */}
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
               <button
-                id="hero-explore-btn"
-                onClick={handleExplore}
-                className="flex items-center gap-2 bg-gradient-to-r from-[#6B1728] via-[#851C32] to-[#5B1020] hover:from-[#541220] hover:to-[#6B1728] dark:from-amber-400 dark:via-amber-300 dark:to-amber-500 dark:hover:from-amber-300 dark:hover:to-amber-400 text-amber-50 dark:text-stone-950 px-6 sm:px-7 py-3 rounded-full font-bold text-xs sm:text-sm shadow-lg hover:shadow-xl hover:shadow-[#6B1728]/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                id="hero-shop-now-btn"
+                type="button"
+                onClick={handleShopNow}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-3.5 sm:py-4 rounded-full bg-gradient-to-r from-[#F0C05A] via-[#E5B147] to-[#D49F30] hover:from-[#FAD77B] hover:to-[#E5B147] text-stone-950 font-extrabold text-base sm:text-lg shadow-lg hover:shadow-amber-500/20 active:scale-95 transition-all transform duration-200 cursor-pointer group"
               >
-                <span>সব শাড়ি কালেকশন দেখুন</span>
-                <ArrowRight className="w-4 h-4 text-amber-300 dark:text-stone-950 group-hover:translate-x-1 transition-transform" />
+                <span>কেনাকাটা করুন</span>
+                <span className="w-7 h-7 rounded-full bg-stone-950/10 flex items-center justify-center group-hover:translate-x-1 transition-transform">
+                  ❯
+                </span>
               </button>
 
-              <button
-                id="hero-track-order-btn"
-                onClick={() => navigateTo('track-order')}
-                className="flex items-center gap-2 bg-white dark:bg-[#1E171C] hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-800 dark:text-stone-100 border border-stone-300 dark:border-stone-700 px-5 py-3 rounded-full font-bold text-xs sm:text-sm transition-all shadow-2xs cursor-pointer"
+              {/* Instant Call / Help Hotline */}
+              <a 
+                href="tel:01711234567"
+                className="inline-flex items-center gap-2 text-xs text-amber-200/80 hover:text-amber-200 font-medium px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:border-amber-400/30 transition-colors"
               >
-                <Truck className="w-4 h-4 text-[#6B1728] dark:text-amber-400" />
-                <span>পার্সেল ট্র্যাকিং</span>
-              </button>
-
-              {/* Quick WhatsApp Contact */}
-              <a
-                href={`https://wa.me/${settings.whatsappNumber.replace(/[^0-9]/g, '')}?text=হ্যালো,%20আমি%20আম্বিয়া%20শাড়ি%20হাউস%20থেকে%20শাড়ি%20কিনতে%20আগ্রহী।`}
-                target="_blank"
-                rel="noreferrer"
-                className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/80 border border-emerald-200 dark:border-emerald-800 px-4 py-3 rounded-full transition-all shadow-2xs"
-              >
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>সহায়তা নিন</span>
+                <span>📞 সরাসরি বুকিং করুন</span>
               </a>
             </div>
 
-            {/* Trust Badges Strip (Clean 4-column Bento) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-4 border-t border-stone-200/80 dark:border-stone-800 text-left">
-              <div className="flex items-center gap-2 p-2 rounded-xl bg-white/70 dark:bg-[#1E171C]/70 border border-stone-200/80 dark:border-stone-800 backdrop-blur-xs">
-                <Award className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                <div className="text-[10px] leading-tight">
-                  <p className="font-bold text-stone-900 dark:text-stone-100">১০০% খাঁটি তাঁত</p>
-                  <p className="text-stone-500 dark:text-stone-400">অরিজিনাল বুনন</p>
-                </div>
+            {/* Trust Badges */}
+            <div className="pt-4 border-t border-[#2D1F26] flex items-center justify-center lg:justify-start gap-6 text-xs text-stone-400">
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>১০০% খাঁটি বুনন</span>
               </div>
-
-              <div className="flex items-center gap-2 p-2 rounded-xl bg-white/70 dark:bg-[#1E171C]/70 border border-stone-200/80 dark:border-stone-800 backdrop-blur-xs">
-                <Truck className="w-4 h-4 text-[#6B1728] dark:text-amber-400 shrink-0" />
-                <div className="text-[10px] leading-tight">
-                  <p className="font-bold text-stone-900 dark:text-stone-100">ক্যাশ অন ডেলিভারি</p>
-                  <p className="text-stone-500 dark:text-stone-400">সারাদেশে প্রাপ্তি</p>
-                </div>
+              <div className="flex items-center gap-1.5">
+                <Truck className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>ক্যাশ অন ডেলিভারি</span>
               </div>
-
-              <div className="flex items-center gap-2 p-2 rounded-xl bg-white/70 dark:bg-[#1E171C]/70 border border-stone-200/80 dark:border-stone-800 backdrop-blur-xs">
-                <RefreshCw className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <div className="text-[10px] leading-tight">
-                  <p className="font-bold text-stone-900 dark:text-stone-100">সহজ রিটার্ন</p>
-                  <p className="text-stone-500 dark:text-stone-400">৭ দিনের পলিসি</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 p-2 rounded-xl bg-white/70 dark:bg-[#1E171C]/70 border border-stone-200/80 dark:border-stone-800 backdrop-blur-xs">
-                <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                <div className="text-[10px] leading-tight">
-                  <p className="font-bold text-stone-900 dark:text-stone-100">দেখে মূল্য পরিশোধ</p>
-                  <p className="text-stone-500 dark:text-stone-400">নিশ্চিন্ত কেনাকাটা</p>
-                </div>
+              <div className="flex items-center gap-1.5">
+                <Award className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>প্রিমিয়াম কোয়ালিটি</span>
               </div>
             </div>
 
           </div>
 
-          {/* ================= RIGHT COLUMN: Ultra-Premium Modern Slideshow UI ================= */}
-          <div className="lg:col-span-6 relative">
-            <div className="relative mx-auto max-w-md lg:max-w-none">
+          {/* ================= RIGHT CONTENT: 3-ARCH SHOWCASE & CAROUSEL ================= */}
+          <div className="lg:col-span-7 relative">
+            
+            {/* The 3 Arched Saree Frame Showcase (Green, Maroon Center, Cream/White) */}
+            <div className="relative flex items-center justify-center min-h-[380px] sm:min-h-[440px] md:min-h-[480px]">
+              
+              {/* Previous Golden Arrow */}
+              <button
+                type="button"
+                onClick={handlePrev}
+                aria-label="Previous Showcase"
+                className="absolute -left-2 sm:left-2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#2A1B22]/90 hover:bg-[#6B1728] text-amber-300 border border-amber-400/40 backdrop-blur-md flex items-center justify-center shadow-2xl active:scale-90 transition-all cursor-pointer"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
 
-              {/* Luxury Frame Container with Double Golden Halo */}
-              <div className="relative p-1 sm:p-1.5 rounded-[2rem] bg-gradient-to-br from-amber-400/40 via-stone-300/30 to-amber-500/30 dark:from-amber-400/30 dark:via-stone-800 dark:to-rose-950 shadow-2xl">
+              {/* Next Golden Arrow */}
+              <button
+                type="button"
+                onClick={handleNext}
+                aria-label="Next Showcase"
+                className="absolute -right-2 sm:right-2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#2A1B22]/90 hover:bg-[#6B1728] text-amber-300 border border-amber-400/40 backdrop-blur-md flex items-center justify-center shadow-2xl active:scale-90 transition-all cursor-pointer"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+
+              {/* 3 Arched Cards Grid */}
+              <div className="flex items-center justify-center gap-2 sm:gap-4 w-full max-w-2xl px-8 sm:px-12">
                 
-                <div className="relative rounded-[1.8rem] overflow-hidden bg-stone-950 border border-amber-400/20 dark:border-amber-400/30">
-                  
-                  {/* Top Progress Bar */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-white/20 z-30">
-                    <div 
-                      key={currentIndex}
-                      className="h-full bg-gradient-to-r from-amber-300 to-amber-500 transition-all ease-linear"
-                      style={{
-                        width: '100%',
-                        animation: isPaused ? 'none' : 'heroProgress 4.5s linear forwards'
-                      }}
-                    />
-                  </div>
+                {showcaseItems.map((item, index) => {
+                  const isCenter = index === activeIndex;
+                  const isLeft = index === (activeIndex === 0 ? showcaseItems.length - 1 : activeIndex - 1);
+                  const isRight = index === (activeIndex === showcaseItems.length - 1 ? 0 : activeIndex + 1);
 
-                  {/* Main Slide Screen */}
-                  <div className="relative aspect-[4/4.9] sm:aspect-[4/4.6] overflow-hidden group">
-                    {sliderProducts.map((product, idx) => {
-                      const isActive = idx === currentIndex;
-                      return (
-                        <div
-                          key={product.id}
-                          aria-hidden={!isActive}
-                          className={`absolute inset-0 transition-all duration-700 ease-out transform-gpu ${
-                            isActive 
-                              ? 'opacity-100 scale-100 z-10 translate-x-0' 
-                              : idx < currentIndex 
-                                ? 'opacity-0 scale-95 z-0 -translate-x-12 pointer-events-none' 
-                                : 'opacity-0 scale-95 z-0 translate-x-12 pointer-events-none'
-                          }`}
-                        >
-                          {/* Saree High-Resolution Image */}
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => handleCardClick(item)}
+                      className={`relative cursor-pointer transition-all duration-500 ease-out transform-gpu group ${
+                        isCenter
+                          ? 'z-20 scale-105 sm:scale-110 w-[55%] sm:w-[50%] opacity-100 shadow-[0_20px_50px_rgba(0,0,0,0.8)]'
+                          : isLeft || isRight
+                            ? 'z-10 scale-90 sm:scale-95 w-[38%] sm:w-[35%] opacity-70 hover:opacity-90 blur-[0.5px] hover:blur-none'
+                            : 'hidden'
+                      }`}
+                    >
+                      {/* Arched Top Golden Double Border Frame */}
+                      <div className={`p-1 sm:p-1.5 rounded-t-[70px] sm:rounded-t-[90px] rounded-b-2xl bg-gradient-to-b ${
+                        isCenter 
+                          ? 'from-[#F7E1A0] via-[#D4AF37] to-[#5C1625]' 
+                          : 'from-stone-500/40 via-amber-400/20 to-transparent'
+                      }`}>
+                        
+                        <div className="relative rounded-t-[66px] sm:rounded-t-[84px] rounded-b-xl overflow-hidden bg-stone-950 aspect-[3/4.6]">
+                          
+                          {/* Saree Model Image */}
                           <img
-                            src={product.images[0]}
-                            alt={product.name}
-                            className="w-full h-full object-cover object-center transform transition-transform duration-1000 group-hover:scale-105"
-                            loading={idx === 0 ? 'eager' : 'lazy'}
+                            src={item.image}
+                            alt={item.title}
+                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                            loading={isCenter ? 'eager' : 'lazy'}
                           />
 
-                          {/* Refined Luxury Multi-Stop Vignette Gradient */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/35 to-black/40" />
+                          {/* Gradient Overlay for Text Legibility */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/30 to-transparent" />
 
-                          {/* Top Floating Tags Bar */}
-                          <div className="absolute top-3.5 left-3.5 right-3.5 z-20 flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#6B1728]/90 text-amber-200 border border-amber-400/40 text-[11px] font-extrabold shadow-md backdrop-blur-md">
-                                <Sparkles className="w-3 h-3 text-amber-400" />
-                                {product.fabric}
-                              </span>
-                              
-                              {product.discountPercent && product.discountPercent > 0 && (
-                                <span className="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full bg-rose-600 text-white text-[11px] font-black shadow-md">
-                                  <Flame className="w-3 h-3 fill-amber-300 text-amber-300" />
-                                  {product.discountPercent}% ছাড়
-                                </span>
-                              )}
-
-                              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/50 text-stone-200 border border-white/10 text-[10px] font-mono backdrop-blur-md">
-                                CODE: #{product.id.slice(-4).toUpperCase()}
-                              </span>
-                            </div>
-
-                            {/* Wishlist Heart Button */}
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleWishlist(product.id);
-                              }}
-                              aria-label="Wishlist"
-                              className="w-9 h-9 rounded-full bg-black/40 hover:bg-[#6B1728] backdrop-blur-md border border-white/20 flex items-center justify-center text-white transition-all active:scale-90 cursor-pointer shadow-lg shrink-0"
-                            >
-                              <Heart 
-                                className={`w-4 h-4 transition-colors ${
-                                  isInWishlist(product.id) ? 'fill-rose-500 text-rose-500' : 'text-white'
-                                }`} 
-                              />
-                            </button>
+                          {/* Top Badge */}
+                          <div className="absolute top-4 inset-x-3 flex justify-center z-10">
+                            <span className="px-2.5 py-0.5 rounded-full bg-[#6B1728]/90 text-amber-200 border border-amber-400/40 text-[10px] sm:text-[11px] font-bold shadow-md backdrop-blur-md">
+                              {item.badge}
+                            </span>
                           </div>
 
-                          {/* Bottom Frosted Glass Product Card Overlay */}
-                          <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 z-20 space-y-2.5 bg-gradient-to-t from-black/95 via-black/80 to-transparent">
+                          {/* Card Bottom Details */}
+                          <div className="absolute bottom-0 inset-x-0 p-3 sm:p-4 text-left z-10 space-y-1.5">
+                            <div className="text-[11px] sm:text-xs text-amber-300 font-bold uppercase tracking-wider">
+                              {item.category}
+                            </div>
+                            <h3 className="text-xs sm:text-sm md:text-base font-bold text-white font-serif-brand line-clamp-1 group-hover:text-amber-300 transition-colors">
+                              {item.title}
+                            </h3>
                             
-                            {/* Rating, Stock & Live Viewers */}
-                            <div className="flex items-center justify-between gap-2 text-xs">
-                              <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1 bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2.5 py-0.5 rounded-full font-bold">
-                                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                                  <span>{product.rating.toFixed(1)} ({product.reviewCount} রিভিউ)</span>
-                                </div>
-                                
-                                {product.inStock && (
-                                  <span className="flex items-center gap-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full font-bold text-[10px]">
-                                    <Check className="w-3 h-3 text-emerald-400" />
-                                    রেডি স্টক
-                                  </span>
-                                )}
-                              </div>
-
-                              {/* Subtle Live Viewer Indicator */}
-                              <div className="hidden sm:flex items-center gap-1 text-[10px] text-amber-200/90 font-medium">
-                                <Users className="w-3 h-3 text-amber-300" />
-                                <span>এই মুহূর্তে ৫ জন দেখছেন</span>
-                              </div>
-                            </div>
-
-                            {/* Saree Title and Description */}
-                            <div 
-                              className="cursor-pointer group/title"
-                              onClick={() => handleViewProduct(product)}
-                            >
-                              <h3 className="text-lg sm:text-xl font-bold text-white font-serif-brand group-hover/title:text-amber-300 transition-colors line-clamp-1">
-                                {product.name}
-                              </h3>
-                              <p className="text-xs text-stone-300/90 line-clamp-1 mt-0.5">
-                                {product.description}
-                              </p>
-                            </div>
-
-                            {/* Price & Action Buttons */}
-                            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-white/20">
-                              
-                              {/* Price Display */}
+                            <div className="flex items-center justify-between pt-1 border-t border-white/15">
                               <div>
-                                <div className="text-[10px] text-stone-400 font-medium">স্পেশাল অফার প্রাইস:</div>
-                                <div className="flex items-baseline gap-2">
-                                  <span className="text-xl sm:text-2xl font-black text-amber-300 font-serif-brand">
-                                    ৳{product.price.toLocaleString('bn-BD')}
-                                  </span>
-                                  {product.originalPrice && product.originalPrice > product.price && (
-                                    <span className="text-xs text-stone-400 line-through">
-                                      ৳{product.originalPrice.toLocaleString('bn-BD')}
-                                    </span>
-                                  )}
-                                </div>
+                                <span className="text-xs sm:text-sm font-black text-amber-300 font-serif-brand">
+                                  ৳{item.price.toLocaleString('bn-BD')}
+                                </span>
                               </div>
 
-                              {/* Action Buttons */}
-                              <div className="flex items-center gap-2">
+                              {isCenter && (
                                 <button
                                   type="button"
-                                  onClick={() => handleViewProduct(product)}
-                                  className="flex items-center gap-1 bg-white/15 hover:bg-white/25 text-white border border-white/30 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer backdrop-blur-md"
-                                  title="শাড়ির বিস্তারিত ও গ্যালারি দেখুন"
+                                  onClick={(e) => handleDirectBuy(e, item)}
+                                  className="flex items-center gap-1 bg-[#6B1728] hover:bg-[#851C32] text-amber-200 text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-lg border border-amber-400/30 shadow-xs cursor-pointer"
                                 >
-                                  <Eye className="w-3.5 h-3.5 text-amber-300" />
-                                  <span>বিস্তারিত</span>
+                                  <Zap className="w-3 h-3 fill-amber-300 text-amber-300" />
+                                  <span>অর্ডার</span>
                                 </button>
-
-                                <button
-                                  type="button"
-                                  onClick={(e) => handleInstantBuy(e, product)}
-                                  className="flex items-center gap-1.5 bg-gradient-to-r from-[#6B1728] via-[#851C32] to-[#6B1728] hover:from-[#52111e] hover:to-[#6B1728] text-amber-100 border border-amber-400/50 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-lg active:scale-95 cursor-pointer"
-                                >
-                                  <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-                                  <span>অর্ডার করুন</span>
-                                </button>
-                              </div>
-
+                              )}
                             </div>
 
                           </div>
+
                         </div>
-                      );
-                    })}
+                      </div>
 
-                    {/* Modern Frosted Chevron Arrows */}
-                    {sliderProducts.length > 1 && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handlePrev();
-                          }}
-                          aria-label="Previous Slide"
-                          className="absolute left-2.5 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/40 hover:bg-[#6B1728] text-white border border-white/20 flex items-center justify-center transition-all backdrop-blur-md shadow-lg active:scale-90 cursor-pointer opacity-80 hover:opacity-100"
-                        >
-                          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleNext();
-                          }}
-                          aria-label="Next Slide"
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/40 hover:bg-[#6B1728] text-white border border-white/20 flex items-center justify-center transition-all backdrop-blur-md shadow-lg active:scale-90 cursor-pointer opacity-80 hover:opacity-100"
-                        >
-                          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </button>
-                      </>
-                    )}
-
-                  </div>
-
-                  {/* Thumbnail Strip Gallery & Navigation */}
-                  <div className="bg-[#140D12] p-2.5 sm:p-3 border-t border-stone-800 flex items-center justify-between gap-2">
-                    
-                    {/* Thumbnails */}
-                    <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5">
-                      {sliderProducts.map((prod, idx) => (
-                        <button
-                          key={prod.id}
-                          type="button"
-                          onClick={() => handleSelectSlide(idx)}
-                          className={`relative rounded-xl overflow-hidden border-2 transition-all shrink-0 cursor-pointer ${
-                            idx === currentIndex 
-                              ? 'border-amber-400 scale-105 shadow-md shadow-amber-500/30 ring-1 ring-amber-400/50' 
-                              : 'border-stone-800 opacity-50 hover:opacity-90'
-                          }`}
-                          title={prod.name}
-                        >
-                          <img 
-                            src={prod.images[0]} 
-                            alt={prod.name} 
-                            className="w-10 h-10 sm:w-11 sm:h-11 object-cover" 
-                          />
-                        </button>
-                      ))}
                     </div>
+                  );
+                })}
 
-                    {/* Active Slide Counter */}
-                    <div className="text-[11px] font-bold text-stone-400 bg-stone-900 border border-stone-800 px-3 py-1 rounded-full shrink-0">
-                      <span className="text-amber-300">{currentIndex + 1}</span> / {sliderProducts.length}
-                    </div>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-              {/* Floating Special Offer Notification Badge */}
-              <div className="absolute -bottom-4 -left-2 sm:-left-4 bg-white/95 dark:bg-[#1E171C]/95 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl shadow-xl border border-amber-400/30 dark:border-amber-400/40 flex items-center gap-2.5 z-30 animate-float">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-stone-950 flex items-center justify-center font-bold text-sm shadow-xs">
-                  ৳
-                </div>
-                <div>
-                  <div className="text-[9px] sm:text-[10px] text-stone-500 dark:text-stone-400 font-bold uppercase tracking-wider">
-                    বিশেষ সুবিধা
-                  </div>
-                  <div className="text-xs font-bold text-[#6B1728] dark:text-amber-300">
-                    ৩০০০+ টাকার অর্ডারে ফ্রি ডেলিভারি!
-                  </div>
-                </div>
-              </div>
-
-              {/* Floating Quality Guarantee Badge */}
-              <div className="absolute -top-3 -right-2 sm:-right-4 bg-gradient-to-r from-[#6B1728] via-[#851C32] to-[#541220] text-amber-100 px-3 py-2 rounded-2xl shadow-xl border border-amber-400/40 flex items-center gap-1.5 z-30">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
-                <span className="text-[11px] sm:text-xs font-bold">১০০% শোরুম কোয়ালিটি</span>
               </div>
 
             </div>
+
+            {/* Showcase Indicators */}
+            <div className="flex items-center justify-center gap-2 mt-4">
+              {showcaseItems.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveIndex(idx)}
+                  className={`h-2 rounded-full transition-all cursor-pointer ${
+                    idx === activeIndex 
+                      ? 'w-6 bg-gradient-to-r from-[#F0C05A] to-[#D49F30]' 
+                      : 'w-2 bg-stone-700 hover:bg-stone-500'
+                  }`}
+                  aria-label={`Slide ${idx + 1}`}
+                />
+              ))}
+            </div>
+
           </div>
 
         </div>
+
+        {/* ================= 4. BOTTOM QUICK SAREE FILTER RIBBON ================= */}
+        <div className="mt-10 sm:mt-12 pt-6 border-t border-[#2D1F26]">
+          <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-4">
+            
+            {categoryCounts.map((cat) => (
+              <button
+                key={cat.name}
+                type="button"
+                onClick={() => handleCategoryPillClick(cat.name)}
+                className="flex items-center gap-2 px-5 py-2 sm:py-2.5 rounded-full bg-[#20151B] hover:bg-[#351C28] text-stone-200 hover:text-amber-200 border border-[#3E2B35] hover:border-amber-400/50 shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer text-xs sm:text-sm font-bold group"
+              >
+                <span>{cat.name}</span>
+                <span className="w-5 h-5 rounded-full bg-[#36131C] group-hover:bg-amber-400 group-hover:text-stone-950 text-amber-300 text-[10px] font-mono flex items-center justify-center transition-colors">
+                  {cat.count}
+                </span>
+              </button>
+            ))}
+
+            <button
+              type="button"
+              onClick={() => handleCategoryPillClick('')}
+              className="flex items-center gap-1.5 px-5 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-[#6B1728] to-[#450C19] hover:from-[#851C32] hover:to-[#5B1022] text-amber-200 text-xs sm:text-sm font-bold border border-amber-400/40 shadow-md transition-all active:scale-95 cursor-pointer"
+            >
+              <span>সকল শাড়ি দেখুন</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+
+          </div>
+        </div>
+
       </div>
+
     </div>
   );
 };

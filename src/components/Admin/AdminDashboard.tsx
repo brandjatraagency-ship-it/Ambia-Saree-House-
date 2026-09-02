@@ -6,6 +6,7 @@ import { AdminOrders } from './AdminOrders';
 import { AdminCODHub } from './AdminCODHub';
 import { AdminCoupons } from './AdminCoupons';
 import { AdminSettings } from './AdminSettings';
+import { AdminSEO } from './AdminSEO';
 import { InvoiceModal } from './InvoiceModal';
 import { Order, SareeProduct } from '../../types';
 import { 
@@ -20,6 +21,7 @@ import {
   Sparkles,
   ExternalLink,
   Zap,
+  Globe,
   Moon,
   Sun
 } from 'lucide-react';
@@ -27,7 +29,7 @@ import {
 export const AdminDashboard: React.FC = () => {
   const { setActiveView, setSelectedProduct, settings, orders, products, darkMode, toggleDarkMode } = useStore();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'cod-hub' | 'products' | 'orders' | 'coupons' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'cod-hub' | 'products' | 'orders' | 'coupons' | 'settings' | 'seo'>('overview');
   const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState<Order | null>(null);
 
   const pendingCount = orders.filter(o => o.status === 'পেন্ডিং').length;
@@ -166,6 +168,20 @@ export const AdminDashboard: React.FC = () => {
               <Settings className="w-4 h-4" />
               <span>শপ সেটিংস ও চার্জ</span>
             </button>
+
+            <button
+              id="admin-tab-seo"
+              onClick={() => setActiveTab('seo')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all whitespace-nowrap ${
+                activeTab === 'seo'
+                  ? 'bg-amber-400 text-stone-950 font-bold shadow-xs'
+                  : 'text-stone-300 hover:bg-stone-800 hover:text-white'
+              }`}
+            >
+              <Globe className="w-4 h-4" />
+              <span>SEO ও সার্চ ইঞ্জিন</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            </button>
           </div>
 
         </div>
@@ -205,6 +221,10 @@ export const AdminDashboard: React.FC = () => {
 
         {activeTab === 'settings' && (
           <AdminSettings />
+        )}
+
+        {activeTab === 'seo' && (
+          <AdminSEO />
         )}
       </main>
 

@@ -1,4 +1,23 @@
-import { SareeProduct, StoreSettings, Coupon, Order, ProductReview } from '../types';
+import { SareeProduct, StoreSettings, Coupon, Order, ProductReview, SEOSettings } from '../types';
+
+export const INITIAL_SEO_SETTINGS: SEOSettings = {
+  metaTitle: 'আম্বিয়া শাড়ি হাউস | খাঁটি জামদানি, কাতান, মসলিন ও বেনারসি শাড়ির বিশ্বস্ত অনলাইন শপ',
+  metaDescription: 'আম্বিয়া শাড়ি হাউস - ঐতিহ্যবাহী আদি ঢাকai জামদানি, ব্রাইডাল বেনারসি কাতান, খাঁটি মসলিন, তসর সিল্ক ও টাঙ্গাইল তাঁতের শাড়ি কিনুন সুলভ মূল্যে। সমগ্র বাংলাদেশে ক্যাশ অন ডেলিভারি ও দ্রুত হোম ডেলিভারি।',
+  metaKeywords: 'আম্বিয়া শাড়ি হাউস, জামদানি শাড়ি, বেনারসি কাতান শাড়ি, মসলিন শাড়ি, সিল্ক শাড়ি, টাঙ্গাইল তাঁত শাড়ি, ব্রাইডাল শাড়ি কালেকশন, বিয়ের শাড়ি ঢাকা, ঢাকাই শাড়ি অনলাইন শপ, Saree Online Shopping BD, Dhakai Jamdani Price BD',
+  canonicalUrl: 'https://ambiasareehouse.com',
+  ogTitle: 'আম্বিয়া শাড়ি হাউস - ঐতিহ্যের ছোঁয়া, আভিজাত্যের প্রকাশ',
+  ogDescription: 'খাঁটি হাতে বোনা প্রিমিয়াম ঢাকাই জামদানি, মসলিন ও ব্রাইডাল বেনারসি কাতান শাড়ির এক্সক্লুসিভ কালেকশন। ক্যাশ অন ডেলিভারিতে অর্ডার করুন।',
+  ogImage: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80',
+  twitterCardType: 'summary_large_image',
+  robotsIndex: true,
+  robotsFollow: true,
+  googleSearchConsoleCode: 'google-site-verification=AmbiaSareeHouseVerificationCode2026',
+  googleAnalyticsId: 'G-ASH2026BD99',
+  facebookPixelId: '109283746501928',
+  organizationName: 'Ambia Saree House (আম্বিয়া শাড়ি হাউস)',
+  schemaType: 'ClothingStore',
+  customRobotsTxt: `User-agent: *\nAllow: /\nDisallow: /admin\nSitemap: https://ambiasareehouse.com/sitemap.xml`
+};
 
 export const INITIAL_SETTINGS: StoreSettings = {
   storeName: 'আম্বিয়া শাড়ি হাউস',

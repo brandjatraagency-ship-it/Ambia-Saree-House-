@@ -142,6 +142,25 @@ export interface StoreSettings {
   isAnnouncementActive: boolean;
 }
 
+export interface SEOSettings {
+  metaTitle: string;
+  metaDescription: string;
+  metaKeywords: string;
+  canonicalUrl: string;
+  ogTitle: string;
+  ogDescription: string;
+  ogImage: string;
+  twitterCardType: 'summary' | 'summary_large_image';
+  robotsIndex: boolean;
+  robotsFollow: boolean;
+  googleSearchConsoleCode: string;
+  googleAnalyticsId: string;
+  facebookPixelId: string;
+  organizationName: string;
+  schemaType: 'Store' | 'ClothingStore' | 'Organization';
+  customRobotsTxt?: string;
+}
+
 export interface FilterState {
   searchQuery: string;
   selectedFabric: string;

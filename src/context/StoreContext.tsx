@@ -4,6 +4,7 @@ import {
   CartItem, 
   Order, 
   StoreSettings, 
+  SEOSettings,
   Coupon, 
   CustomerDetails, 
   PaymentMethod,
@@ -16,6 +17,7 @@ import {
   INITIAL_PRODUCTS, 
   INITIAL_ORDERS, 
   INITIAL_SETTINGS, 
+  INITIAL_SEO_SETTINGS,
   INITIAL_COUPONS,
   INITIAL_REVIEWS
 } from '../data/initialData';
@@ -37,6 +39,7 @@ interface StoreContextType {
   coupons: Coupon[];
   reviews: ProductReview[];
   settings: StoreSettings;
+  seoSettings: SEOSettings;
   appliedCoupon: Coupon | null;
   activeView: 'store' | 'admin';
   currentPage: PageType;
@@ -108,6 +111,7 @@ interface StoreContextType {
   updateProduct: (product: SareeProduct) => void;
   deleteProduct: (productId: string) => void;
   updateSettings: (newSettings: StoreSettings) => void;
+  updateSEOSettings: (newSeo: SEOSettings) => void;
   addCoupon: (coupon: Omit<Coupon, 'id'>) => void;
   toggleCouponStatus: (couponId: string) => void;
   deleteCoupon: (couponId: string) => void;
@@ -201,6 +205,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return saved ? JSON.parse(saved) : INITIAL_SETTINGS;
     } catch {
       return INITIAL_SETTINGS;
+    }
+  });
+
+  const [seoSettings, setSeoSettings] = useState<SEOSettings>(() => {
+    try {
+      const saved = localStorage.getItem('ambia_saree_seo_settings');
+      return saved ? JSON.parse(saved) : INITIAL_SEO_SETTINGS;
+    } catch {
+      return INITIAL_SEO_SETTINGS;
     }
   });
 
@@ -421,6 +434,110 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.error('Error saving settings:', e);
     }
   }, [settings]);
+
+  // SEO settings persistence & Head tags updater
+  useEffect(() => {
+    try {
+      localStorage.setItem('ambia_saree_seo_settings', JSON.stringify(seoSettings));
+
+      // Dynamic Title
+      if (seoSettings.metaTitle) {
+        document.title = seoSettings.metaTitle;
+      }
+
+      // Helper to set or create meta tag
+      const setMetaTag = (nameOrProp: 'name' | 'property', attrValue: string, content: string) => {
+        let el = document.querySelector(`meta[${nameOrProp}="${attrValue}"]`);
+        if (!el) {
+          el = document.createElement('meta');
+          el.setAttribute(nameOrProp, attrValue);
+          document.head.appendChild(el);
+        }
+        el.setAttribute('content', content);
+      };
+
+      // Set standard meta tags
+      if (seoSettings.metaDescription) {
+        setMetaTag('name', 'description', seoSettings.metaDescription);
+      }
+      if (seoSettings.metaKeywords) {
+        setMetaTag('name', 'keywords', seoSettings.metaKeywords);
+      }
+
+      // Robots
+      const robotsDirective = `${seoSettings.robotsIndex ? 'index' : 'noindex'}, ${seoSettings.robotsFollow ? 'follow' : 'nofollow'}`;
+      setMetaTag('name', 'robots', robotsDirective);
+
+      // Open Graph Tags
+      setMetaTag('property', 'og:title', seoSettings.ogTitle || seoSettings.metaTitle);
+      setMetaTag('property', 'og:description', seoSettings.ogDescription || seoSettings.metaDescription);
+      if (seoSettings.ogImage) {
+        setMetaTag('property', 'og:image', seoSettings.ogImage);
+      }
+      setMetaTag('property', 'og:type', 'website');
+      if (seoSettings.canonicalUrl) {
+        setMetaTag('property', 'og:url', seoSettings.canonicalUrl);
+      }
+
+      // Twitter Cards
+      setMetaTag('name', 'twitter:card', seoSettings.twitterCardType || 'summary_large_image');
+      setMetaTag('name', 'twitter:title', seoSettings.ogTitle || seoSettings.metaTitle);
+      setMetaTag('name', 'twitter:description', seoSettings.ogDescription || seoSettings.metaDescription);
+      if (seoSettings.ogImage) {
+        setMetaTag('name', 'twitter:image', seoSettings.ogImage);
+      }
+
+      // Google Search Console meta tag
+      if (seoSettings.googleSearchConsoleCode) {
+        const code = seoSettings.googleSearchConsoleCode.includes('content="')
+          ? seoSettings.googleSearchConsoleCode.split('content="')[1].split('"')[0]
+          : seoSettings.googleSearchConsoleCode.replace('google-site-verification=', '').trim();
+        setMetaTag('name', 'google-site-verification', code);
+      }
+
+      // Canonical link tag
+      if (seoSettings.canonicalUrl) {
+        let canonicalEl = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+        if (!canonicalEl) {
+          canonicalEl = document.createElement('link');
+          canonicalEl.setAttribute('rel', 'canonical');
+          document.head.appendChild(canonicalEl);
+        }
+        canonicalEl.setAttribute('href', seoSettings.canonicalUrl);
+      }
+
+      // Structured Data (JSON-LD) Schema
+      const schemaData = {
+        '@context': 'https://schema.org',
+        '@type': seoSettings.schemaType || 'ClothingStore',
+        'name': settings.storeName,
+        'description': seoSettings.metaDescription,
+        'url': seoSettings.canonicalUrl || 'https://ambiasareehouse.com',
+        'telephone': settings.phone,
+        'email': settings.email,
+        'address': {
+          '@type': 'PostalAddress',
+          'streetAddress': settings.address,
+          'addressLocality': 'Dhaka',
+          'addressCountry': 'BD'
+        },
+        'priceRange': '৳৳',
+        'image': seoSettings.ogImage || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80'
+      };
+
+      let scriptSchema = document.getElementById('store-schema-jsonld') as HTMLScriptElement | null;
+      if (!scriptSchema) {
+        scriptSchema = document.createElement('script');
+        scriptSchema.id = 'store-schema-jsonld';
+        scriptSchema.type = 'application/ld+json';
+        document.head.appendChild(scriptSchema);
+      }
+      scriptSchema.textContent = JSON.stringify(schemaData, null, 2);
+
+    } catch (e) {
+      console.error('Error applying SEO settings:', e);
+    }
+  }, [seoSettings, settings]);
 
   // Toast Helper
   const showToast = (text: string, type: 'success' | 'info' | 'error' = 'success') => {
@@ -732,6 +849,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     showToast('দোকানের সেটিংস সফলভাবে আপডেট হয়েছে', 'success');
   };
 
+  const updateSEOSettings = (newSeo: SEOSettings) => {
+    setSeoSettings(newSeo);
+    showToast('সার্চ ইঞ্জিন অপ্টিমাইজেশন (SEO) সেটিংস সফলভাবে সংরক্ষণ হয়েছে', 'success');
+  };
+
   const addCoupon = (couponData: Omit<Coupon, 'id'>) => {
     const newCoupon: Coupon = {
       ...couponData,
@@ -776,6 +898,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         orders,
         coupons,
         settings,
+        seoSettings,
         appliedCoupon,
         activeView,
         currentPage,
@@ -828,6 +951,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updateProduct,
         deleteProduct,
         updateSettings,
+        updateSEOSettings,
         addCoupon,
         toggleCouponStatus,
         deleteCoupon,
